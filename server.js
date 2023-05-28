@@ -14,7 +14,8 @@ const server = http.createServer((req, res) => {
   const targetUrl = queryObject.url;
 
   if (!targetUrl) {
-    res.writeHead(400, { 'Content-Type': 'text/plain' });    res.end('Missing target URL in query parameters');
+    res.writeHead(400, { 'Content-Type': 'text/plain' });    
+    res.end('Missing target URL in query parameters');
     return;
   }
 
@@ -22,7 +23,8 @@ const server = http.createServer((req, res) => {
   proxy.web(req, res, { target: targetUrl }, (err) => {
     // Handle proxy errors
     console.error('Proxy error:', err);
-    res.writeHead(500, { 'Content-Type': 'text/plain' });    res.end('Proxy error');
+    res.writeHead(500, { 'Content-Type': 'text/plain' });    
+    res.end('Proxy error');
   });
 });
 
