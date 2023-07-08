@@ -1,20 +1,24 @@
 const express = require('express');
 const axios = require('axios');
 const session = require('express-session');
+const cookieParser = require('cookie-parser');
+
 // const cookieParser = require('cookie-parser')
 // const url = require('url');
 const PORT = process.env.PORT || 3000;
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
+
 // app.use(cookieParser());
 
-app.use(session({
-  secret: 'your-secret-key', // Secret key used for session encryption
-  resave: false,
-  saveUninitialized: true,
-  originalMaxAge:'1hr'
-}));
+// app.use(session({
+//   secret: 'your-secret-key', // Secret key used for session encryption
+//   resave: false,
+//   saveUninitialized: true,
+//   originalMaxAge:'3600000'
+// }));
 
 // let i = 0;
 // const users = [];
@@ -31,10 +35,12 @@ app.get('/:url(*)', async (req, res) => {
 
     if (urlParam.startsWith('http://') || urlParam.startsWith('https://')) {
       absoluteUrl = urlParam;
-      if(!req.session.originalUrl) req.session.originalUrl = absoluteUrl;
+      if(!req.cookies || !req.cookies.originalUrl){
+        res.cookie('originalUrl', absoluteUrl, { maxAge: 3600000 });
+      }
     } else {
       // Handle relative URLs
-      absoluteUrl = new URL(urlParam, req.session.originalUrl).href;
+      absoluteUrl = new URL(urlParam, req.cookies.originalUrl).href;
     }
     
     if(absoluteUrl[0] === '/') abosoluteUrl.splice(0, 1);
@@ -57,7 +63,7 @@ app.get('/:url(*)', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    req.session.destroy();
+    req.clearCookie('originalUrl');
     res.send(`<a link='http://ipinfo.io'>ip loc</a>`);
 });
 
