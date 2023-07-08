@@ -22,13 +22,13 @@ app.use(session({
 
 // Route to handle requests for any resource
 app.get('/:url(*)', async (req, res) => {
+    let absoluteUrl;
   try {
 
     // console.log(req.session.originalUrl);
     let urlParam = req.params.url; // Retrieve the URL parameter
     urlParam = urlParam.replace(/^"(.*)"$/, '$1'); // Remove quotes from the URL
 
-    let absoluteUrl;
     if (urlParam.startsWith('http://') || urlParam.startsWith('https://')) {
       absoluteUrl = urlParam;
       if(!req.session.originalUrl) req.session.originalUrl = absoluteUrl;
@@ -36,6 +36,9 @@ app.get('/:url(*)', async (req, res) => {
       // Handle relative URLs
       absoluteUrl = new URL(urlParam, req.session.originalUrl).href;
     }
+    
+    if(absoluteUrl[0] === '/') abosoluteUrl.splice(0, 1);
+    
     const response = await axios.get(absoluteUrl, {
       responseType: 'arraybuffer' // Set the response type to arraybuffer to handle binary files
     });
@@ -49,11 +52,12 @@ app.get('/:url(*)', async (req, res) => {
     res.send(Buffer.from(response.data, 'binary'));
   } catch (error) {
     // Handle any errors that occurred during the request
-    res.status(500).send('Error fetching resource');
+    res.status(500).send('Error fetching resource', absoluteUrl);
   }
 });
 
 app.get('/', (req, res) => {
+    req.session.destroy();
     res.send(`<a link='http://ipinfo.io'>ip loc</a>`);
 });
 
