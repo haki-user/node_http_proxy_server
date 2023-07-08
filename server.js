@@ -48,11 +48,15 @@ app.get('/:url(*)', async (req, res) => {
     }
   });
 
+app.get('/', async (req, res) => {
+    const data = await getData('http://ipinfo.io');
+    res.send(data);
+};
   
   
 
 app.listen(PORT, () => {
-    console.log('3000');
+    console.log(PORT);
 });
 
 
