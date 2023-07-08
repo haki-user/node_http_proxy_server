@@ -1,65 +1,66 @@
 const express = require('express');
-// const request = require('request');
 const axios = require('axios');
-const url = require('url');
-const qs = require('qs');
-const path = require('path');
-
+const session = require('express-session');
+// const cookieParser = require('cookie-parser')
+// const url = require('url');
 const PORT = process.env.PORT || 3000;
+
 const app = express();
-
 app.use(express.json());
+// app.use(cookieParser());
 
-const getData = async (url) => {
-    try {
-        const res = await axios(url);
-        const data = res.data;
-        // console.log(data);
-        return data;
-    } catch (err) {
-        // console.log(err);
-        console.log('error', url);
-    } 
-}
+app.use(session({
+  secret: 'your-secret-key', // Secret key used for session encryption
+  resave: false,
+  saveUninitialized: true,
+  originalMaxAge:'1hr'
+}));
 
-const { URL } = require('url');
+// let i = 0;
+// const users = [];
 
+
+// Route to handle requests for any resource
 app.get('/:url(*)', async (req, res) => {
-    console.log("req");
-    try {
-      let url = req.params.url; // Retrieve the URL parameter
-      url = url.replace(/^"(.*)"$/, '$1'); // Remove quotes from the URL
-  
-      const response = await axios.get(url, {
-        responseType: 'arraybuffer' // Set the response type to arraybuffer to handle binary files
-      });
-  
-      const contentType = response.headers['content-type'];
-      const fileExtension = path.extname(url).substring(1); // Extract the file extension
-  
-      // Set the appropriate content type header
-      res.set('Content-Type', contentType);
-  
-      // Forward the binary response to the client
-      res.send(Buffer.from(response.data, 'binary'));
-    } catch (error) {
-      // Handle any errors that occurred during the request
-      res.status(500).send('Error fetching resource');
+  try {
+
+    // console.log(req.session.originalUrl);
+    let urlParam = req.params.url; // Retrieve the URL parameter
+    urlParam = urlParam.replace(/^"(.*)"$/, '$1'); // Remove quotes from the URL
+
+    let absoluteUrl;
+    if (urlParam.startsWith('http://') || urlParam.startsWith('https://')) {
+      absoluteUrl = urlParam;
+      if(!req.session.originalUrl) req.session.originalUrl = absoluteUrl;
+    } else {
+      // Handle relative URLs
+      absoluteUrl = new URL(urlParam, req.session.originalUrl).href;
     }
-  });
+    const response = await axios.get(absoluteUrl, {
+      responseType: 'arraybuffer' // Set the response type to arraybuffer to handle binary files
+    });
 
-app.get('/', async (req, res) => {
-    const data = await getData('http://ipinfo.io');
-    res.send(data);
+    const contentType = response.headers['content-type'];
+
+    // Set the appropriate content type header
+    res.set('Content-Type', contentType);
+
+    // Forward the binary response to the client
+    res.send(Buffer.from(response.data, 'binary'));
+  } catch (error) {
+    // Handle any errors that occurred during the request
+    res.status(500).send('Error fetching resource');
+  }
 });
-  
-  
 
+app.get('/', (req, res) => {
+    res.send(`<a link='http://ipinfo.io'>ip loc</a>
+});
+
+// Start the server
 app.listen(PORT, () => {
-    console.log(PORT);
+  console.log('Server listening on port', PORT);
 });
-
-
 
 
 
