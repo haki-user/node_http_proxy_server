@@ -54,7 +54,7 @@ app.get('/:url(*)', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.send(`<a link='http://ipinfo.io'>ip loc</a>
+    res.send(`<a link='http://ipinfo.io'>ip loc</a>`);
 });
 
 // Start the server
